@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim: set noexpandtab:ts=8
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,18 +21,27 @@ import sys
 import syslog
 from tempfile import mkstemp
 import time
+import imp
 
-# --- do not commit ---
-LDAP_URL='ldap://<%= scope.lookupvar('::ldapvip') %>'
-LDAP_BIND_DN='<%= scope.function_hiera(['secrets_netfilter_ssh_bind_username']) %>'
-LDAP_BIND_PASSWD='<%= scope.function_hiera(['secrets_netfilter_ssh_bind_password']) %>'
-# --- end of do not commit ---
+cfg_path = ['nfldap_reload.conf', '/etc/nfldap_reload.conf']
+config = None
+
+for cfg in cfg_path:
+	if os.path.isfile(cfg):
+		try:
+			config = imp.load_source('config', cfg)
+		except:
+			pass
+
+if config == None:
+	print("Failed to load config")
+	sys.exit(1)
 
 def log(msg):
-		""" Send a message to syslog """
-		syslog.openlog('nfldap_reload', 0, syslog.LOG_DAEMON)
-		syslog.syslog(syslog.LOG_INFO, msg)
-		syslog.closelog()
+	""" Send a message to syslog """
+	syslog.openlog('nfldap_reload', 0, syslog.LOG_DAEMON)
+	syslog.syslog(syslog.LOG_INFO, msg)
+	syslog.closelog()
 
 # This script generates a tree of rules that efficiently looks up packets
 # belonging to a given user. The tree is composed of one chain for each
@@ -54,7 +64,7 @@ def log(msg):
 #
 def main():
 	ipt = libnfldap.IPTables()
-	ldap = libnfldap.LDAP(LDAP_URL, LDAP_BIND_DN, LDAP_BIND_PASSWD)
+	ldap = libnfldap.LDAP(config.LDAP_URL, config.LDAP_BIND_DN, config.LDAP_BIND_PASSWD)
 	ipset = libnfldap.IPset()
 
 	gen_start_time = time.time()
@@ -131,7 +141,7 @@ def main():
 	load_time = time.time() - load_start_time
 	if status == -1:
 		log("ERROR: failed to load iptables rules from '%s'. generation time=%s seconds, loading time=%s seconds" % (tmppath, gen_time, load_time))
-	
+
 	log("iptables rules reloaded successfully. generation time=%s seconds, loading time=%s seconds" % (gen_time, load_time))
 
 if __name__ == "__main__":
