@@ -18,10 +18,10 @@ import libnfldap
 import os
 import pwd
 import sys
-import syslog
 from tempfile import mkstemp
 import time
 import imp
+import mozdef
 
 cfg_path = ['nfldap_reload.conf', '/etc/nfldap_reload.conf']
 config = None
@@ -37,11 +37,10 @@ if config == None:
 	print("Failed to load config")
 	sys.exit(1)
 
-def log(msg):
-	""" Send a message to syslog """
-	syslog.openlog('nfldap_reload', 0, syslog.LOG_DAEMON)
-	syslog.syslog(syslog.LOG_INFO, msg)
-	syslog.closelog()
+
+mozmsg = mozdef.MozDefMsg(config.MOZDEF_URL, tags=['LDAP', 'netfilter', 'nfldap_reload'])
+mozmsg.sendToSyslog = config.USE_SYSLOG
+mozmsg.syslogOnly = not config.USE_MOZDEF
 
 # This script generates a tree of rules that efficiently looks up packets
 # belonging to a given user. The tree is composed of one chain for each
@@ -140,9 +139,12 @@ def main():
 	status = os.system(command)
 	load_time = time.time() - load_start_time
 	if status == -1:
-		log("ERROR: failed to load iptables rules from '%s'. generation time=%s seconds, loading time=%s seconds" % (tmppath, gen_time, load_time))
+		mozmsg.send(summary="failed to load iptables rules from"+tmppath, severity='ERROR',
+			details={'generation_time': gen_time, 'loading_time': load_time})
 
-	log("iptables rules reloaded successfully. generation time=%s seconds, loading time=%s seconds" % (gen_time, load_time))
+	else:
+		mozmsg.send(summary="iptables rules reloaded successfully.",
+			details={'generation_time': gen_time, 'loading_time': load_time})
 
 if __name__ == "__main__":
 	main()
