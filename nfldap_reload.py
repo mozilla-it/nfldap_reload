@@ -23,7 +23,7 @@ import time
 import imp
 import mozdef
 
-cfg_path = ['nfldap_reload.conf', '/etc/nfldap_reload.conf']
+cfg_path = ['nfldap_reload.conf', '/usr/local/etc/nfldap_reload.conf', '/etc/nfldap_reload.conf']
 config = None
 
 for cfg in cfg_path:
