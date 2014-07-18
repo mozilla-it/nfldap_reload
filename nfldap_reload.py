@@ -123,8 +123,8 @@ def main():
 
 	# set a default drop policy at the end of the ruleset
 	ipt.insertSaneDefaults()
-	ipt.appendFilterRule("-A INPUT -p tcp -m multiport --dports 22 -j ACCEPT")
-	ipt.appendFilterRule("-A INPUT -p tcp -m multiport --dports 5666 -j ACCEPT")
+	ipt.appendFilterRule("-A INPUT -p tcp --dport 22 -m state --state NEW -j ACCEPT")
+	ipt.appendFilterRule("-A INPUT -p tcp --dport 5666 -m state --state NEW -j ACCEPT")
 	ipt.appendFilterRule("-A OUTPUT -m owner --uid-owner 0 -m state --state NEW -j ACCEPT")
 	ipt.appendDefaultDrop()
 
