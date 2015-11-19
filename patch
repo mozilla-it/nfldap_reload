@@ -1,0 +1,12 @@
+diff --git a/nfldap_reload.py b/nfldap_reload.py
+index 3efe689..51ba4e4 100755
+--- a/nfldap_reload.py
++++ b/nfldap_reload.py
+@@ -148,6 +148,6 @@ def main():
+ 	else:
+ 		mozmsg.send(summary="iptables rules reloaded successfully.",
+ 			details={'generation_time': gen_time, 'loading_time': load_time})
+-
++        os.remove(tmppath)
+ if __name__ == "__main__":
+ 	main()

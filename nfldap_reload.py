@@ -148,6 +148,6 @@ def main():
 	else:
 		mozmsg.send(summary="iptables rules reloaded successfully.",
 			details={'generation_time': gen_time, 'loading_time': load_time})
-
+        os.remove(tmppath)
 if __name__ == "__main__":
 	main()
